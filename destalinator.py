@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 from datetime import datetime, date
+import os
 import re
 import time
 import json
@@ -29,6 +30,15 @@ class Destalinator(WithLogger, WithConfig):
         self.warning_text = utils.get_local_file_content(self.warning_text_fname)
         self.slacker = slacker
         self.slackbot = slackbot
+        self.user = os.getenv("USER")
+        self.config = config.Config()
+        self.output_debug_to_slack_flag = False
+        if os.getenv(self.config.output_debug_env_varname):
+            self.output_debug_to_slack_flag = True
+        print("output_debug_to_slack_flag is {}".format(self.output_debug_to_slack_flag))
+        self.earliest_archive_date = self.config.earliest_archive_date
+        self.cache = {}
+        self.now = time.time()
 
         self.config.activated = activated
         self.logger.debug("activated is %s", self.config.activated)
@@ -150,7 +160,6 @@ class Destalinator(WithLogger, WithConfig):
             say = "Members at archiving are {}".format(", ".join(sorted(members)))
             self.logger.debug("Telling channel #%s: %s", channel_name, say)
             self.post_marked_up_message(channel_name, say, message_type='channel_archive_members')
-
             self.action("Archiving channel #{}".format(channel_name))
             payload = self.slacker.archive(channel_name)
             if payload['ok']:
@@ -161,6 +170,13 @@ class Destalinator(WithLogger, WithConfig):
                 self.logger.error("Failed to archive %s: %s. See https://api.slack.com/methods/channels.archive for more context.", channel_name, error)
 
             return payload
+
+    def debug(self, message):
+        message = "DEBUG: " + message
+        if self.output_debug_to_slack_flag:
+            self.log(message)
+        else:
+            print(message)
 
     def safe_archive(self, channel_name):
         """

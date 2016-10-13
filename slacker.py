@@ -160,6 +160,14 @@ class Slacker(WithLogger, WithConfig):
         except KeyError:  # channel not found
             return None
 
+    def delete_message(self, cid, message_timestamp):
+        url_template = self.url + "chat.delete?token={}&channel={}&ts={}"
+        url = url_template.format(self.token, cid, message_timestamp)
+        ret = requests.get(url).json()
+        if not ret['ok']:
+            print(ret)
+        return ret['ok']
+
     def get_channel_members_ids(self, channel_name):
         """
         returns an array of member IDs for channel_name
@@ -174,6 +182,7 @@ class Slacker(WithLogger, WithConfig):
 
         mids = set(self.get_channel_members_ids(channel_name))
         self.logger.debug("Current members in %s are %s", channel_name, mids)
+        print("mids for {} is {}".format(channel_name, mids))
         return mids.intersection(self.all_restricted_users)
 
     def get_channel_member_names(self, channel_name):

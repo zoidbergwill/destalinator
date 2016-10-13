@@ -3,6 +3,7 @@
 import argparse
 import copy
 import json
+import html.parser
 import operator
 import re
 import time
@@ -26,8 +27,16 @@ class Flagger(executor.Executor):
 
     def __init__(self, *args, **kwargs):
         self.debug = kwargs.pop('debug', False)
-        super(self.__class__, self).__init__(*args, **kwargs)
         self.now = int(time.time())
+        self.htmlparser = html.parser.HTMLParser()
+        super(Flagger, self).__init__(*args, **kwargs)
+
+    def dprint(self, message):
+        """
+        If we're in debug or verbose mode, print message
+        """
+        if self.debug or self.verbose:
+            print(message)
 
     def extract_threshold(self, token):
         """
