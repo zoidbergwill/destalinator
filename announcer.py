@@ -10,11 +10,10 @@ class Announcer(executor.Executor):
         """
         returns [(channel_name, creator, purpose)] created in the last 24 hours
         """
-
-        now = int(time.time())
-        dayago = now - 86400
         channels = self.slacker.get_all_channel_objects()
-        new_channels = [channel for channel in channels if channel['created'] > dayago]
+        with open('channels.txt', 'r') as f:
+          existing_channels = f.read().split()
+        new_channels = [channel for channel in channels if channel['name'] not in existing_channels]
         new = []
         for new_channel in new_channels:
             purpose = self.slacker.asciify(new_channel['purpose']['value'])
@@ -22,6 +21,8 @@ class Announcer(executor.Executor):
             friendly = self.slacker.asciify(self.slacker.users_by_id[creator])
             name = self.slacker.asciify(new_channel['name'])
             new.append((name, friendly, purpose))
+        with open('channels.txt', 'w') as f:
+          existing_channels = f.write('\n'.join(channel['name'] for channel in new_channels))
         return new
 
     def announce(self):
