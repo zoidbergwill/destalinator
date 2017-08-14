@@ -22,6 +22,7 @@ def schedule_job():
     sched.start()
 
 
+@sched.scheduled_job("cron", second=10)
 def destalinate_job():
     raven_client = RavenClient()
 
@@ -33,10 +34,7 @@ def destalinate_job():
         )
     else:
         try:
-            archiver.Archiver().archive()
-            warner.Warner().warn()
             announcer.Announcer().announce()
-            flagger.Flagger().flag()
             logging.info("OK: destalinated")
         except Exception as e:  # pylint: disable=W0703
             raven_client.captureException()

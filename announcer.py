@@ -12,7 +12,7 @@ class Announcer(executor.Executor):
         """
         channels = self.slacker.get_all_channel_objects()
         with open('channels.txt', 'r') as f:
-          existing_channels = f.read().split()
+            existing_channels = f.read().split()
         new_channels = [channel for channel in channels if channel['name'] not in existing_channels]
         new = []
         for new_channel in new_channels:
@@ -21,8 +21,8 @@ class Announcer(executor.Executor):
             friendly = self.slacker.asciify(self.slacker.users_by_id[creator])
             name = self.slacker.asciify(new_channel['name'])
             new.append((name, friendly, purpose))
-        with open('channels.txt', 'w') as f:
-          existing_channels = f.write('\n'.join(channel['name'] for channel in new_channels))
+        with open('channels.txt', 'a') as f:
+            existing_channels = f.writelines('{}\n'.format(channel['name']) for channel in new_channels)
         return new
 
     def announce(self):
